@@ -11,12 +11,23 @@
 - 自由なウィンドウサイズ  
 
 ## Usage
+```bash
+cd
+java ReversiBit
+```
 キーボード  
 - SPACE　：１手進める  
 - S　：ボードセーブ  
 - D　：ボードロード  
 - A　：再描画  
 - G　：AIパラメータをランダムに変更  
+
+## Install
+```bash
+cd
+javac ReversiBit.java
+```
+
 
 ## Licence
 
