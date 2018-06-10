@@ -29,9 +29,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
 /**
- *
- * @author kousuke
- *
+ *りばーし
  */
 public class ReversiBit{
 	/**
@@ -46,9 +44,21 @@ public class ReversiBit{
 	 * ボードサイズ
 	 */
 	static final Point Max = new Point(8,8);
+	/**
+	 * 黒定数
+	 */
 	static final int Black = 0;
+	/**
+	 * 白定数
+	 */
 	static final int White = 1;
+	/**
+	 * 両チーム定数
+	 */
 	static final int BW = 2;
+	/**
+	 * チームなし定数
+	 */
 	static final int Noteam = 3;
 
 	/**
@@ -81,10 +91,6 @@ public class ReversiBit{
 	 * 0,勝ち　1,負け 2,引き分け
 	 */
 	static int AIwin[] = {0,0,0};
-//	/**
-//	 * 色別勝数
-//	 */
-//	static int Bwin[] = {0,0,0};
 	/**
 	 * メイン戦局情報
 	 */
@@ -99,8 +105,6 @@ public class ReversiBit{
 	final ReversiGraphic RG = new ReversiGraphic();
 	/**
 	 * AI用評価パラメーター
-	 * @author sidemat
-	 *
 	 */
 	 class Parameter{
 		/**
@@ -169,7 +173,6 @@ public class ReversiBit{
 		int gameturn;
 		/**
 		 * 現ターンに置けるチーム
-		 * 0 黒 1 白
 		 */
 		int Nowteam;
 		/**
@@ -192,8 +195,6 @@ public class ReversiBit{
 	}
 	/**
 	 * JFrameによるリバーシのグラフィック表示
-	 * @author kousuke
-	 *
 	 */
 	final class ReversiGraphic extends JFrame{
 		/**
@@ -365,8 +366,6 @@ public class ReversiBit{
 		}
 		/**
 		 * 画面更新タイマー
-		 * @author kousuke
-		 *
 		 */
 		class update extends TimerTask{
 			update(){
@@ -417,6 +416,7 @@ public class ReversiBit{
 	}
 	/**
 	 * リバーシコンストラクター
+	 * 初期設定も
 	 */
 	ReversiBit(){
 		System.out.println("りばーし");
@@ -424,17 +424,17 @@ public class ReversiBit{
 			loadLearning();
 			loadCount();
 		} catch (IOException e) {
-			
+
 		}
 		String selectvalues[] = {"黒", "白", "両方", "なし"};
-		
+
 		int select = JOptionPane.showOptionDialog(RG,
-				"どれをプレイ？", 
-				"Setting", 
+				"どれをプレイ？",
+				"Setting",
 				JOptionPane.YES_NO_OPTION,
 				JOptionPane.QUESTION_MESSAGE,
-				null, 
-				selectvalues, 
+				null,
+				selectvalues,
 				selectvalues[0]
 				);
 		switch(select) {
@@ -461,7 +461,7 @@ public class ReversiBit{
 	public void ReversiStart(){
 		ti.Nowteam = 0;
 		ti.gameturn = 0;
-		
+
 		ti.bitboard[Black] = 0x0000000810000000L;
 		ti.bitboard[White] = 0x0000001008000000L;
 
@@ -516,7 +516,7 @@ public class ReversiBit{
 		long tmp;
 		//返り値
 		long legalBoard;
-	
+
 		//8方向チェック (・一度に返せる石は最大6つ ・高速化のためにforを展開)
 		//左
 		tmp = horizontalWatchBoard & (myteam << 1);
@@ -526,7 +526,7 @@ public class ReversiBit{
 		tmp |= horizontalWatchBoard & (tmp << 1);
 		tmp |= horizontalWatchBoard & (tmp << 1);
 		legalBoard = blankBoard & (tmp << 1);
-	
+
 		//右
 		tmp = horizontalWatchBoard & (myteam >>> 1);
 		tmp |= horizontalWatchBoard & (tmp >>> 1);
@@ -535,7 +535,7 @@ public class ReversiBit{
 		tmp |= horizontalWatchBoard & (tmp >>> 1);
 		tmp |= horizontalWatchBoard & (tmp >>> 1);
 		legalBoard |= blankBoard & (tmp >>> 1);
-	
+
 		//上
 		tmp = verticalWatchBoard & (myteam << 8);
 		tmp |= verticalWatchBoard & (tmp << 8);
@@ -544,7 +544,7 @@ public class ReversiBit{
 		tmp |= verticalWatchBoard & (tmp << 8);
 		tmp |= verticalWatchBoard & (tmp << 8);
 		legalBoard |= blankBoard & (tmp << 8);
-	
+
 		//下
 		tmp = verticalWatchBoard & (myteam >>> 8);
 		tmp |= verticalWatchBoard & (tmp >>> 8);
@@ -553,7 +553,7 @@ public class ReversiBit{
 		tmp |= verticalWatchBoard & (tmp >>> 8);
 		tmp |= verticalWatchBoard & (tmp >>> 8);
 		legalBoard |= blankBoard & (tmp >>> 8);
-	
+
 		//右斜め上
 		tmp = allSideWatchBoard & (myteam << 7);
 		tmp |= allSideWatchBoard & (tmp << 7);
@@ -562,7 +562,7 @@ public class ReversiBit{
 		tmp |= allSideWatchBoard & (tmp << 7);
 		tmp |= allSideWatchBoard & (tmp << 7);
 		legalBoard |= blankBoard & (tmp << 7);
-	
+
 		//左斜め上
 		tmp = allSideWatchBoard & (myteam << 9);
 		tmp |= allSideWatchBoard & (tmp << 9);
@@ -571,7 +571,7 @@ public class ReversiBit{
 		tmp |= allSideWatchBoard & (tmp << 9);
 		tmp |= allSideWatchBoard & (tmp << 9);
 		legalBoard |= blankBoard & (tmp << 9);
-	
+
 		//右斜め下
 		tmp = allSideWatchBoard & (myteam >>> 9);
 		tmp |= allSideWatchBoard & (tmp >>> 9);
@@ -580,7 +580,7 @@ public class ReversiBit{
 		tmp |= allSideWatchBoard & (tmp >>> 9);
 		tmp |= allSideWatchBoard & (tmp >>> 9);
 		legalBoard |= blankBoard & (tmp >>> 9);
-	
+
 		//左斜め下
 		tmp = allSideWatchBoard & (myteam >>> 7);
 		tmp |= allSideWatchBoard & (tmp >>> 7);
@@ -589,7 +589,7 @@ public class ReversiBit{
 		tmp |= allSideWatchBoard & (tmp >>> 7);
 		tmp |= allSideWatchBoard & (tmp >>> 7);
 		legalBoard |= blankBoard & (tmp >>> 7);
-	
+
 		return legalBoard;
 	}
 	/**
@@ -679,7 +679,7 @@ public class ReversiBit{
 			}
 			tia.bitboard[tia.Nowteam]   ^= mask | rev;
 			tia.bitboard[enemy(tia.Nowteam)] ^= rev;
-			
+
 			if(!AIing)
 				System.out.println(teamname(tia.Nowteam)+" Placed "+getPointMask(mask) );
 			teamchanger(tia);
@@ -827,8 +827,8 @@ public class ReversiBit{
 			System.out.println(teamname(enemy(ti.Nowteam))+"random- "+X+" , "+Y);
 		}
 		if(isEndGame(ti)){return;}
-		
-		
+
+
 		//続けてAIrunするとき
 		if(ti.Nowteam==AIteam) {
 			AIing=true;
@@ -912,7 +912,7 @@ public class ReversiBit{
 	}
 	/**
 	 * ArrayListの最大
-	 * @param cval int型ArrayList
+	 * @param cval int 型ArrayList
 	 * @return 最大の値を取るArralListのインデックス
 	 */
 	public int MaxMatch(ArrayList<Integer> cval){
@@ -928,7 +928,7 @@ public class ReversiBit{
 	}
 	/**
 	 * ArrayListの最小
-	 * @param cval int型ArrayList
+	 * @param cval int 型ArrayList
 	 * @return 最小の値を取るArralListのインデックス
 	 */
 	public int minMatch(ArrayList<Integer> cval){
@@ -944,8 +944,6 @@ public class ReversiBit{
 	}
 	/**
 	 * リバーシ思考AI
-	 * @author sidemat
-	 *
 	 */
 	public class Think extends Thread /*implements Cloneable*/{
 		/**
@@ -1127,7 +1125,7 @@ public class ReversiBit{
 				System.err.println("miss at "+trymask);
 				return;
 			}
-			
+
 			parentIds[FPI]++;
 			myid=0;
 
@@ -1136,7 +1134,7 @@ public class ReversiBit{
 			myvalue=(int) TBoardReputation(ti.Nowteam);
 			if(teamtemp==Tti.Nowteam && teamtemp==ti.Nowteam)
 				myvalue+=7000;
-			if(deep==0) 
+			if(deep==0)
 				isEnd=true;
 
 //			String space="";
@@ -1223,7 +1221,7 @@ public class ReversiBit{
 				haveteam=White;
 			else
 				return 0;
-			
+
 			long cant=0,stop,mask=0;
 			long cant2=0,stop2,mask2=0;
 //			System.out.println(Long.toBinaryString(start));
@@ -1312,13 +1310,13 @@ public class ReversiBit{
 		 */
 		private long MPtransfer(long mask, int direction) {
 			switch(direction) {
-		    case 7: 
+		    case 7:
 		        return (mask << 7) | 0x80808080808080ffL;
-		    case -7: 
+		    case -7:
 		        return (mask >>> 7) | 0xff01010101010101L;
-		    case 9: 
+		    case 9:
 		        return (mask << 9) | 0x01010101010101ffL;
-		    case -9: 
+		    case -9:
 		        return (mask >>> 9) | 0xff80808080808080L;
 			default:
 				return 0;
@@ -1444,7 +1442,7 @@ public class ReversiBit{
 			buffwriter.newLine();
 			buffwriter.write(Integer.toString(AIwin[BW]));
 			buffwriter.newLine();
-			
+
 
 			buffwriter.close();
 			filewriter.close();
@@ -1478,7 +1476,7 @@ public class ReversiBit{
 				long MP=selectpoint(e);
 				boolean boolplace=Changer(ti,MP);
 				if(boolplace) {
-					
+
 				}else {
 					System.out.println("Clicked "+getPointMask(MP) );
 				}
@@ -1530,10 +1528,10 @@ public class ReversiBit{
 					thi2.run();
 					System.out.println(teamname(White)+"  value: "+thi2.getreplyvalue() );
 				}
-				
+
 				ti.Nowteam=fteam;
 				AIing=fAI;
-				
+
 				AllChecker(ti);
 			}
 		}
