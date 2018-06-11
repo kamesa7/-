@@ -11,6 +11,9 @@
 - 自由なウィンドウサイズ  
 
 ## Usage
+ExeReversi.jarを直接起動　　
+　　
+または　　
 ```bash
 cd
 java ReversiBit
@@ -23,6 +26,9 @@ java ReversiBit
 - G　：AIパラメータをランダムに変更  
 
 ## Install
+ExeReversi.jarを直接起動　　
+　　
+または　　
 ```bash
 cd
 javac ReversiBit.java
