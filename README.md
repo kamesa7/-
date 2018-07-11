@@ -1,38 +1,29 @@
-# りばーし
-=============
+# りばーし　　
 
 ## Description
 リバーシアプリ  
-- AI  
+- α-β法のAI  
 - セーブ機能  
 - AI戦績保存  
 - ビットボード演算  
 - JavaSwing  
-- 自由なウィンドウサイズ  
+- ウィンドウサイズ変更可能  
 
 ## Usage
-ExeReversi.jarを直接起動　　
-　　
-または　　
+```ExeReversiBit.jarを直接起動```  
+または
 ```bash
 cd
-java ReversiBit
+java　-jar ExeReversiBit.jar
+こちらの方法だと文字表示もされる
 ```
+
 キーボード  
 - SPACE　：１手進める  
 - S　：ボードセーブ  
 - D　：ボードロード  
 - A　：再描画  
 - G　：AIパラメータをランダムに変更  
-
-## Install
-ExeReversi.jarを直接起動　　
-　　
-または　　
-```bash
-cd
-javac ReversiBit.java
-```
 
 
 ## Licence
