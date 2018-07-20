@@ -64,10 +64,9 @@ public class ReversiBit{
 	/**
 	 * リバーシオブジェクト作成
 	 * @param args null
-	 * @throws IOException null
 	 */
-	public static void main(String[] args) throws IOException {
-		ReversiBit RB = new ReversiBit();
+	public static void main(String[] args){
+		new ReversiBit();
 	}
 	/**
 	 * AI思考中
@@ -94,7 +93,7 @@ public class ReversiBit{
 	/**
 	 * メイン戦局情報
 	 */
-	Teaminfo ti = new Teaminfo();
+	Teaminfo mainBoard = new Teaminfo();
 	/**
 	 * AI用評価パラメーター
 	 */
@@ -131,6 +130,22 @@ public class ReversiBit{
 		 * 敵が置ける場所ポイント倍率
 		 */
 		 float CanEn = 3f;
+		 /**
+		  * Passポイント
+		  */
+		 int passP=7000;
+		 /**
+		  * 精算ポイント
+		  */
+		 int finalCount=100;
+		 /**
+		  * 早期終了空きコマポイント
+		  */
+		 int blankP=1000;
+		 /**
+		  * 探索カット振れ幅
+		  */
+		 int cutP=200;
 		/**
 		 * 探索深度
 		 */
@@ -187,7 +202,7 @@ public class ReversiBit{
 		/**
 		 * コマ有無
 		 */
-		long bitboard[]= {0x0000000810000000L,0x0000001008000000L};
+		long bitboard[]= {0x0000000810000000L,0x0000001008000000L};//初期配置
 		/**
 		 * 着手可能場所
 		 */
@@ -321,13 +336,13 @@ public class ReversiBit{
 		public void titleset() {
 			float rate=(float)(AIwin[0])/(float)(AIwin[0]+AIwin[1])*100F;
 			String Rate=String.format("%.1f", rate);
-				setTitle("りばーし　"+GameCount+"プレイ　 AI勝率： "+Rate+"%  盤面："+ti.Bcount[Black]+" - "+ti.Bcount[White]+"  AIチーム:"+teamname(AIteam)+"   現在"+teamname(ti.Nowteam)+"のターン");
+				setTitle("りばーし　"+GameCount+"プレイ　 AI勝率： "+Rate+"%  盤面："+mainBoard.Bcount[Black]+" - "+mainBoard.Bcount[White]+"  AIチーム:"+teamname(AIteam)+"   現在"+teamname(mainBoard.Nowteam)+"のターン");
 		}
 		/**
 		 * マウスアイコンを現在チームのものに
 		 */
 		void mouseicon(){
-			setCursor(cursor[ti.Nowteam]);
+			setCursor(cursor[mainBoard.Nowteam]);
 		}
 		/**
 		 * マス目を実際に表示
@@ -356,7 +371,7 @@ public class ReversiBit{
 						loadBoard();break;
 					case java.awt.event.KeyEvent.VK_A:
 						RG.repaint();
-						AllChecker(ti);
+						AllChecker(mainBoard);
 						Clicking=true;
 						break;
 					case java.awt.event.KeyEvent.VK_G:
@@ -397,15 +412,15 @@ public class ReversiBit{
 					titleset();
 					int X=0,Y=0;
 					for(long mask=1; mask!=0L ; mask<<=1){
-						if((ti.bitboard[Black] & mask) != 0){
+						if((mainBoard.bitboard[Black] & mask) != 0){
 							doshow(X,Y, 1);
-						}else if((ti.bitboard[White] & mask) != 0){
+						}else if((mainBoard.bitboard[White] & mask) != 0){
 							doshow(X,Y, 2);
-						}else if((ti.bitcanboard[Black] & ti.bitcanboard[White] & mask) != 0){
+						}else if((mainBoard.bitcanboard[Black] & mainBoard.bitcanboard[White] & mask) != 0){
 							doshow(X,Y, 5);
-						}else if((ti.bitcanboard[Black] & mask) != 0){
+						}else if((mainBoard.bitcanboard[Black] & mask) != 0){
 							doshow(X,Y, 3);
-						}else if((ti.bitcanboard[White] & mask) != 0){
+						}else if((mainBoard.bitcanboard[White] & mask) != 0){
 							doshow(X,Y, 4);
 						}else{
 							doshow(X,Y, 0);
@@ -469,10 +484,10 @@ public class ReversiBit{
 	 * 初期化
 	 */
 	public void ReversiStart(){
-		ti = new Teaminfo();
+		mainBoard = new Teaminfo();
 		start = System.currentTimeMillis();
 
-		AllChecker(ti);
+		AllChecker(mainBoard);
 		Clicking=true;
 		if(AIteam==BW || AIteam==Black)AIrun();
 	}
@@ -482,7 +497,7 @@ public class ReversiBit{
 	void Gameset(){
 		AIing=false;
 
-		int winner=getWinner(ti);
+		int winner=getWinner(mainBoard);
 		if(winner==BW){
 			System.out.println("Draw Game");
 			if(AIteam==Black||AIteam==White)
@@ -496,12 +511,12 @@ public class ReversiBit{
 			AIwin[1]++;
 		}
 
-		System.out.println(teamname(winner)+"の勝ち！"+"    "+teamname(Black)+ti.Bcount[Black]+" : "+ti.Bcount[White]+teamname(White));
+		System.out.println(teamname(winner)+"の勝ち！"+"    "+teamname(Black)+mainBoard.Bcount[Black]+" : "+mainBoard.Bcount[White]+teamname(White));
 		GameCount++;
 		saveCount();
 		long end = System.currentTimeMillis();
 		System.out.println("Time:" + (end - start)  + "ms");
-		RG.message=teamname(winner)+"の勝ち！"+"    "+teamname(Black)+ti.Bcount[Black]+" : "+ti.Bcount[White]+teamname(White);
+		RG.message=teamname(winner)+"の勝ち！"+"    "+teamname(Black)+mainBoard.Bcount[Black]+" : "+mainBoard.Bcount[White]+teamname(White);
 	}
 	/**
 	 * 着手可能ボードを返す
@@ -806,14 +821,14 @@ public class ReversiBit{
 	 * AIをどう動かすか制御
 	 */
 	public void AIrun(){
-		if(isEndGame(ti)){//どちらも置けない
+		if(isEndGame(mainBoard)){//どちらも置けない
 			ReversiStart();
 			return;
 		}
 		boolean withAI;//AIを使うかどうか、使わない場合ランダム
 		if(AIteam==BW) {
 			withAI=true;
-		}else if(ti.Nowteam==AIteam){
+		}else if(mainBoard.Nowteam==AIteam){
 			withAI=true;
 		}else{
 			withAI=false;
@@ -823,20 +838,20 @@ public class ReversiBit{
 			AIing=true;
 			long DO = ThreadPredictor();
 			AIing=false;
-			Changer(ti,DO);
+			Changer(mainBoard,DO);
 		}else{						//ランダム
 			int X=0,Y=0;
 			do{
 			X =(int)(Math.random()*(Max.x));
 			Y =(int)(Math.random()*(Max.y));
-			}while(Changer(ti,getMask(X,Y))==false);
-			System.out.println(teamname(enemy(ti.Nowteam))+"random- "+X+" , "+Y);
+			}while(Changer(mainBoard,getMask(X,Y))==false);
+			System.out.println(teamname(enemy(mainBoard.Nowteam))+"random- "+X+" , "+Y);
 		}
-		if(isEndGame(ti)){return;}
+		if(isEndGame(mainBoard)){return;}
 
 
 		//続けてAIrunするとき
-		if(ti.Nowteam==AIteam) {
+		if(mainBoard.Nowteam==AIteam) {
 			AIing=true;
 			Timer TimerAIb = new Timer();
 			TimerAIb.schedule(new TimerAI(), 1000);
@@ -856,11 +871,10 @@ public class ReversiBit{
 		ArrayList<Long> candidate = new ArrayList<Long>();
 		ArrayList<Integer> cval = new ArrayList<Integer>();
 		ArrayList<Think> thi =new ArrayList<Think>();
-		ti.myvalue=TBoardReputation(ti,false);
-		System.out.println("Now: "+ti.myvalue);
+		mainBoard.myvalue=TBoardReputation(mainBoard,false);
+		System.out.println("Now: "+mainBoard.myvalue);
 		for(long mask=1; mask!=0L ; mask<<=1){
-			int intmask=getIntMask(mask);
-			if( (ti.bitcanboard[ti.Nowteam] & mask )!=0){
+			if( (mainBoard.bitcanboard[mainBoard.Nowteam] & mask )!=0){
 				Think firstT=new Think(mask,Para.SetDeep,null);
 				thi.add(firstT);
 				candidate.add( mask );
@@ -882,6 +896,8 @@ public class ReversiBit{
 			}else{
 				try {
 					thi.get(d).join();
+					cval.add(thi.get(d).thinkvalue);
+					thi.set(d, null);
 					d++;
 				} catch (InterruptedException e) {
 					e.printStackTrace();
@@ -891,12 +907,13 @@ public class ReversiBit{
 		}
 
 		while(thi.size()>0){
+			if(thi.get(0)!=null)
 			try {
 				thi.get(0).join();
+				cval.add(thi.get(0).thinkvalue);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
-			cval.add(thi.get(0).myvalue);
 			thi.remove(0);
 		}
 		int c=MaxMatch(cval);
@@ -904,8 +921,8 @@ public class ReversiBit{
 		try {
 			valueP = candidate.get(c);
 		} catch (Exception e) {//どこにも置けなかったら
-			System.err.println(ti.gameturn+teamname(ti.Nowteam));
-			teamchanger(ti);
+			System.err.println(mainBoard.gameturn+teamname(mainBoard.Nowteam));
+			teamchanger(mainBoard);
 			valueP = 0;
 			return(valueP);
 		}
@@ -957,24 +974,24 @@ public class ReversiBit{
 		if(bool) value=Tti.myvalue;
 		else value=0;
 
-		int enemyteam=enemy(ti.Nowteam);
+		int enemyteam=enemy(mainBoard.Nowteam);
 		if(isEndGame(Tti)){
-				value+=100*Long.bitCount(Tti.bitboard[ti.Nowteam]);
-				value-=100*Long.bitCount(Tti.bitboard[enemyteam]);
-				if(getWinner(Tti)==ti.Nowteam)
-					value+=1000*Long.bitCount( ~(Tti.bitboard[Black]|Tti.bitboard[White]) );
+				value+=Para.finalCount*Long.bitCount(Tti.bitboard[mainBoard.Nowteam]);
+				value-=Para.finalCount*Long.bitCount(Tti.bitboard[enemyteam]);
+				if(getWinner(Tti)==mainBoard.Nowteam)
+					value+=Para.blankP*Long.bitCount( ~(Tti.bitboard[Black]|Tti.bitboard[White]) );
 				else
-					value-=1000*Long.bitCount( ~(Tti.bitboard[Black]|Tti.bitboard[White])) ;
+					value-=Para.blankP*Long.bitCount( ~(Tti.bitboard[Black]|Tti.bitboard[White])) ;
 			return value;
 		}
 		if(bool)value+=Para.Binfo[getIntMask(Tti.lastplace)]*Para.Myp;
 		for(long mask=1; mask!=0L ; mask<<=1){
 			int intmask=getIntMask(mask);
-				if( (Tti.bitcanboard[ti.Nowteam]&mask)!=0 )
+				if( (Tti.bitcanboard[mainBoard.Nowteam]&mask)!=0 )
 					value+=Para.Binfo[intmask]*Para.CanMe;
 				if( (Tti.bitcanboard[enemyteam]&mask)!=0 )
 					value-=Para.Binfo[intmask]*Para.CanEn;
-				if( (Tti.bitboard[ti.Nowteam]&mask)!=0 )
+				if( (Tti.bitboard[mainBoard.Nowteam]&mask)!=0 )
 					value+=Para.Binfo[intmask]*Para.Bx;
 				if( (Tti.bitboard[enemyteam]&mask)!=0 )
 					value-=Para.Binfo[intmask]*Para.Bx;
@@ -983,7 +1000,7 @@ public class ReversiBit{
 		long cant =getcannotboard(Tti.bitboard);
 		for(long mask=1; mask!=0L ; mask<<=1)
 			if( (cant & mask)!=0)
-				if( (Tti.bitboard[ti.Nowteam]&mask)!=0 )
+				if( (Tti.bitboard[mainBoard.Nowteam]&mask)!=0 )
 					value+=Para.Binfo[getIntMask(mask)]*Para.Ne;
 				else
 					value-=Para.Binfo[getIntMask(mask)]*Para.Ne;
@@ -1121,7 +1138,7 @@ public class ReversiBit{
 		/**
 		 * 自局面の評価
 		 */
-		int myvalue;
+		int thinkvalue;
 		/**
 		 * 探索末端かどうか
 		 */
@@ -1144,21 +1161,20 @@ public class ReversiBit{
 
 			if(parent==null) {
 				myparent=this;
-				Tti.bitboard[Black]=ti.bitboard[Black];
-				Tti.bitboard[White]=ti.bitboard[White];
-				Tti.bitcanboard[Black]=ti.bitcanboard[Black];
-				Tti.bitcanboard[White]=ti.bitcanboard[White];
+				Tti.bitboard[Black]=mainBoard.bitboard[Black];
+				Tti.bitboard[White]=mainBoard.bitboard[White];
+				Tti.bitcanboard[Black]=mainBoard.bitcanboard[Black];
+				Tti.bitcanboard[White]=mainBoard.bitcanboard[White];
 
-				Tti.canCount[Black]=ti.canCount[Black];
-				Tti.canCount[White]=ti.canCount[White];
-				Tti.Bcount[Black]=ti.Bcount[Black];
-				Tti.Bcount[White]=ti.Bcount[White];
+				Tti.canCount[Black]=mainBoard.canCount[Black];
+				Tti.canCount[White]=mainBoard.canCount[White];
+				Tti.Bcount[Black]=mainBoard.Bcount[Black];
+				Tti.Bcount[White]=mainBoard.Bcount[White];
 
-				Tti.Nowteam=ti.Nowteam;
-				Tti.gameturn=ti.gameturn;
+				Tti.Nowteam=mainBoard.Nowteam;
+				Tti.gameturn=mainBoard.gameturn;
 			}
 		}
-
 		/**
 		 * コピー
 		 * @return コピーThink、deepは下がる、親はコピー元
@@ -1179,7 +1195,7 @@ public class ReversiBit{
 				res.Tti.Nowteam=Tti.Nowteam;
 				res.Tti.gameturn=Tti.gameturn;
 
-				res.myvalue=myvalue;
+				res.thinkvalue=thinkvalue;
 
 				return res;
 		}
@@ -1191,7 +1207,7 @@ public class ReversiBit{
 //			System.out.println("ThreadStart "+FP.x+" , "+FP.y);
 			Trydo(FPL);
 
-			Think finalboard =getFinal(myvalue,mychildren);
+			Think finalboard =getFinal(thinkvalue,mychildren);
 			String BWscore;
 			try {
 				String equality;
@@ -1213,13 +1229,13 @@ public class ReversiBit{
 			} catch (IndexOutOfBoundsException e) {
 				BWscore="Finished";
 			}
-			System.out.println(getPointMask(FPL)+"	value: "+String.format("%5d", myvalue)+"	"+BWscore);
+			System.out.println(getPointMask(FPL)+"	value: "+String.format("%5d", thinkvalue)+"	"+BWscore);
 //			System.out.println("ThreadEnd"+FP.x+","+FP.y);
 		}
 		Think getFinal(int score,ArrayList<Think> children) {
 			try {
 				for(Think child:children) {
-					if(child.myvalue==score) {
+					if(child.thinkvalue==score) {
 						if(child.isEnd)return child;
 						else return getFinal(score,child.mychildren);
 					}
@@ -1241,13 +1257,13 @@ public class ReversiBit{
 				return;
 			}
 
-			if(teamtemp==Tti.Nowteam && teamtemp==ti.Nowteam)
-				myvalue+=7000;
+			if(teamtemp==Tti.Nowteam && teamtemp==mainBoard.Nowteam)
+				thinkvalue+=Para.passP;
 
-			if(teamtemp==ti.Nowteam) {
-				int value=TBoardReputation(Tti,true);
-				if(value<ti.myvalue-200) {
-					myvalue+=value;//value;
+			if(teamtemp==mainBoard.Nowteam) {
+				Tti.myvalue=TBoardReputation(Tti,true);
+				if(Tti.myvalue<mainBoard.myvalue-Para.cutP) {
+					thinkvalue+=Tti.myvalue;//value;
 					isEnd=true;
 					showlevel();
 					try {
@@ -1256,9 +1272,9 @@ public class ReversiBit{
 					return;
 				}
 			} else {
-				int value=TBoardReputation(Tti,true);
-				if(value>ti.myvalue+200) {
-					myvalue+=value;
+				Tti.myvalue=TBoardReputation(Tti,true);
+				if(Tti.myvalue>mainBoard.myvalue+Para.cutP) {
+					thinkvalue+=Tti.myvalue;
 					isEnd=true;
 					showlevel();
 					try {
@@ -1270,11 +1286,22 @@ public class ReversiBit{
 
 			if(deep==0||isEndGame(Tti)|isEnd) {
 				isEnd=true;
-				myvalue=TBoardReputation(Tti,true);
+				thinkvalue=Tti.myvalue;
 			} else {
 				mychildren=nextgenerations();
-				if(Tti.Nowteam==ti.Nowteam) myvalue=maxChildMatch(mychildren);
-				else myvalue=minChildMatch(mychildren);
+				if(Tti.Nowteam==mainBoard.Nowteam) {
+					int num=Integer.MIN_VALUE;
+					for(Think child : mychildren) {
+						if(child.thinkvalue>num) num=child.thinkvalue;
+					}
+					thinkvalue=num;
+				} else {
+					int num=Integer.MAX_VALUE;
+					for(Think child : mychildren) {
+						if(child.thinkvalue<num) num=child.thinkvalue;
+					}
+					thinkvalue=num;
+				}
 				showlevel();
 			}
 		}
@@ -1292,7 +1319,7 @@ public class ReversiBit{
 		 */
 		ArrayList<Think> nextgenerations() {
 			if(deep>0) {
-				ArrayList<Think> childs =new ArrayList();
+				ArrayList<Think> childs =new ArrayList<Think>();
 				for(long mask=1; mask!=0L ; mask<<=1){
 					if( (mask & Tti.bitcanboard[Tti.Nowteam])!=0){
 						Think t = clone();
@@ -1311,7 +1338,7 @@ public class ReversiBit{
 	public class TimerAI extends TimerTask {
 		@Override
 		public void run() {
-			if(!isEndGame(ti))
+			if(!isEndGame(mainBoard))
 				AIrun();
 		}
 	}
@@ -1329,33 +1356,18 @@ public class ReversiBit{
 			FileReader filereader = new FileReader(file);
 			BufferedReader buffreader = new BufferedReader(filereader);
 
-			for(int y=0;y<8;y++) {
+			for(int y=0;y<Max.y;y++) {
 				String line[]=buffreader.readLine().split(",");
-				for(int x=0;x<8;x++) {
+				for(int x=0;x<Max.x;x++) {
 					Para.Binfo[getIntMask(getMask(x,y))]=Integer.parseInt(line[x]);
 				}
 			}
-
 			buffreader.close();
 			filereader.close();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 		System.out.println("loaded:learned");
-	}
-	public int maxChildMatch(ArrayList<Think> mychildren) {
-		int num=Integer.MIN_VALUE;
-		for(Think child : mychildren) {
-			if(child.myvalue>num) num=child.myvalue;
-		}
-		return num;
-	}
-	public int minChildMatch(ArrayList<Think> mychildren) {
-		int num=Integer.MAX_VALUE;
-		for(Think child : mychildren) {
-			if(child.myvalue<num) num=child.myvalue;
-		}
-		return num;
 	}
 	/**
 	 * ファイルにボードを記録
@@ -1365,16 +1377,16 @@ public class ReversiBit{
 		try {
 			FileWriter filewriter = new FileWriter(file);
 			BufferedWriter buffwriter = new BufferedWriter(filewriter);
-			buffwriter.write(Long.toString(ti.bitboard[Black]));
+			buffwriter.write(Long.toString(mainBoard.bitboard[Black]));
 			buffwriter.newLine();
-			buffwriter.write(Long.toString(ti.bitboard[White]));
+			buffwriter.write(Long.toString(mainBoard.bitboard[White]));
 			buffwriter.newLine();
-			buffwriter.write(Long.toString(ti.bitcanboard[Black]));
+			buffwriter.write(Long.toString(mainBoard.bitcanboard[Black]));
 			buffwriter.newLine();
-			buffwriter.write(Long.toString(ti.bitcanboard[White]));
+			buffwriter.write(Long.toString(mainBoard.bitcanboard[White]));
 			buffwriter.newLine();
 
-			buffwriter.write(String.valueOf(ti.Nowteam));
+			buffwriter.write(String.valueOf(mainBoard.Nowteam));
 			buffwriter.newLine();
 
 			buffwriter.close();
@@ -1393,12 +1405,12 @@ public class ReversiBit{
 			FileReader filereader = new FileReader(file);
 			BufferedReader buffreader = new BufferedReader(filereader);
 
-			ti.bitboard[Black] = Long.parseLong( buffreader.readLine() );
-			ti.bitboard[White] = Long.parseLong( buffreader.readLine() );
-			ti.bitcanboard[Black] = Long.parseLong( buffreader.readLine() );
-			ti.bitcanboard[White] = Long.parseLong( buffreader.readLine() );
+			mainBoard.bitboard[Black] = Long.parseLong( buffreader.readLine() );
+			mainBoard.bitboard[White] = Long.parseLong( buffreader.readLine() );
+			mainBoard.bitcanboard[Black] = Long.parseLong( buffreader.readLine() );
+			mainBoard.bitcanboard[White] = Long.parseLong( buffreader.readLine() );
 
-			ti.Nowteam=Integer.parseInt(buffreader.readLine());
+			mainBoard.Nowteam=Integer.parseInt(buffreader.readLine());
 
 			buffreader.close();
 			filereader.close();
@@ -1408,7 +1420,7 @@ public class ReversiBit{
 		Clicking=true;
 		System.out.println("loaded:board");
 
-		AllChecker(ti);
+		AllChecker(mainBoard);
 	}
 	void saveCount() {
 		File file = new File("PlayStatistics.txt");
@@ -1455,18 +1467,18 @@ public class ReversiBit{
 		public void mousePressed(MouseEvent e){
 			if(e.getButton()==1&&AIing==false){//左クリック
 				long MP=selectpoint(e);
-				boolean boolplace=Changer(ti,MP);
+				boolean boolplace=Changer(mainBoard,MP);
 				if(boolplace) {
 
 				}else {
 					System.out.println("Clicked "+getPointMask(MP) );
 				}
-				if(boolplace==false&&isEndGame(ti)){//どちらも置けない
+				if(boolplace==false&&isEndGame(mainBoard)){//どちらも置けない
 					ReversiStart();
 					return;
-				}else if(isEndGame(ti)){
+				}else if(isEndGame(mainBoard)){
 					return;
-				}else if(ti.Nowteam==AIteam){
+				}else if(mainBoard.Nowteam==AIteam){
 					AIing=true;
 					Timer TimerAIb = new Timer();
 					TimerAIb.schedule(new TimerAI(), 500);
@@ -1479,34 +1491,34 @@ public class ReversiBit{
 
 			if(e.getButton()==3&&AIing==false){//右クリック
 				boolean fAI=AIing;
-				int fteam=ti.Nowteam;
+				int fteam=mainBoard.Nowteam;
 
 				AIing=true;
 				long MP=selectpoint(e);
-				long cant=getcannotboard(ti.bitboard);
+				long cant=getcannotboard(mainBoard.bitboard);
 				System.out.println("Clicked "+getPointMask(MP)+"  "+getIntMask(MP)+"  "
-						+(Long.bitCount(MP&ti.bitboard[Black]))+"-"+(Long.bitCount(MP&ti.bitboard[White]))+"-"
-						+(Long.bitCount(MP&ti.bitcanboard[Black]))+"-"+(Long.bitCount(MP&ti.bitcanboard[White]))+"-"+Long.bitCount(MP&cant)
+						+(Long.bitCount(MP&mainBoard.bitboard[Black]))+"-"+(Long.bitCount(MP&mainBoard.bitboard[White]))+"-"
+						+(Long.bitCount(MP&mainBoard.bitcanboard[Black]))+"-"+(Long.bitCount(MP&mainBoard.bitcanboard[White]))+"-"+Long.bitCount(MP&cant)
 						+"   allcant:"+Long.bitCount(cant)
 						);
 
-				if( (MP&ti.bitcanboard[Black])!=0) {
-					ti.Nowteam=Black;
+				if( (MP&mainBoard.bitcanboard[Black])!=0) {
+					mainBoard.Nowteam=Black;
 					Think thi1 =new Think(MP,Para.SetDeep,null);
 					thi1.run();
-					System.out.println(teamname(Black)+"  value: "+thi1.myvalue );
+					System.out.println(teamname(Black)+"  value: "+thi1.thinkvalue );
 				}
-				if( (MP&ti.bitcanboard[White])!=0) {
-					ti.Nowteam=White;
+				if( (MP&mainBoard.bitcanboard[White])!=0) {
+					mainBoard.Nowteam=White;
 					Think thi2 =new Think(MP,Para.SetDeep,null);
 					thi2.run();
-					System.out.println(teamname(White)+"  value: "+thi2.myvalue );
+					System.out.println(teamname(White)+"  value: "+thi2.thinkvalue );
 				}
 
-				ti.Nowteam=fteam;
+				mainBoard.Nowteam=fteam;
 				AIing=fAI;
 
-				AllChecker(ti);
+				AllChecker(mainBoard);
 			}
 		}
 
